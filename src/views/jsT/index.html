@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,86 +7,38 @@
     <title>Document</title>
   </head>
   <body>
-    <div>对象测试</div>
+    测试js字符串操作
   </body>
   <script>
-    const obj = {
-      id: '1',
-      name: '小维',
-    }
-    const temp1 = []
-    const lucky = () => {
-      Object.keys(obj).forEach((key) => {
-        console.log(obj[key])
-        temp1.push(obj[key])
-      })
-    }
-    const temp2 = Object.values(obj)
-    lucky()
-    //下面2个打印都是一样的，value合集的数组
-    console.log(temp1) //['1', '小维']
-    console.log(temp2) //['1', '小维']
-    //传入字符串or数组都是返回索引
-    const str = 'abcde'
-    const arr = ['a', 'b', 'c', 'd', 'e']
-    console.log(Object.keys(arr)) //[0,1,2,3,4]
-    console.log(Object.keys(str)) //[0,1,2,3,4]
-    //可深浅拷贝 Object.assign(target, source_1, ···)
-    let target = { name: '小艾 ' }
-    let source = { age: 20 } //就一层对象是深拷贝,如果里面还有{},那么就是浅拷贝
-    let obj1 = Object.assign(target, source)
-    console.log(source) //{ age: 20}
-    console.log(obj1) //{name: '小艾 ', age: 20}
-    source.name = '小维'
-    let obj2 = Object.assign(target, source) // 如果目标对象和源对象有同名属性，则后面的属性会覆盖前面的属性
-    console.log(obj2) //{name: '小维', age: 20}
-    console.log(obj1) //{name: '小维', age: 20}
-    console.log(target) //{name: '小维', age: 20}
-    //深拷贝
-    let deepClone = JSON.parse(JSON.stringify(target))
-    target.name = '小羊'
-    console.log(deepClone) //{name: '小维', age: 20}
-    deepClone.name = '小明'
-    console.log(target) //{name: '小羊', age: 20};
+    let arr = ['福建', '厦门']
+    let newArr = arr.join('-')
+    console.log(newArr) //福建-厦门
+    arr.push('福建') //添加相同
+    console.log(arr) //['福建', '厦门', '福建']
 
-    //将对象转为数组格式
-    const obj3 = {
-      name: 'LUCKY',
-      age: 20,
-    }
-    const arrLucky = Object.entries(obj3)
-    console.log(arrLucky) //[['name', 'LUCKY'], ['age', 20]]
-    //将上面这种转对象 适合将 Map 结构转为对象
-    const obj4 = Object.fromEntries(arrLucky)
-    console.log(obj4) //{name: 'LUCKY', age: 20}
-    //删除属性
-    delete obj3.name
-    console.log(obj3) //{age: 20}
-    let { name, ...params } = target //除了name属性以外的target对象中的所有其他属性
-    console.log(params) //{age: 20}
-    //Object.assign 测试值变化
-    const objN = {
-      name: '坤',
-      age: 24,
-      info: {
-        test: 'zz',
-      },
-    }
-    const test = {
-      kun: 'ngm',
-    }
-    const newObjN = Object.assign(test, objN)
-    objN.age = 25
-    test.age = 26
-    test.info.test = 'NN'
-    console.log(objN, newObjN, test) //发现age无法影响objN的值
-    console.log(objN, newObjN, test) //发现info里的test影响objN的值
+    let arrOne = new Set(arr) //去重复
+    let arrS = [...arrOne] //将set转数组
+    console.log(arrS) // ['福建', '厦门']
 
-    const original = { a: 1, b: 2, info: { name: '小维' }, arr: [1, 2, 3] }
+    let url = 'http://www.luckynwa.top/login?name=123&age=18'
+    let urlDeal = url.split('?')[1]
+    //将字符串切割字符串数组
+    console.log(urlDeal) //name=123&age=18
+    console.log(urlDeal.split('&')) // ["name=123", "age=18"]
+    let strJ = '你干嘛啊!'
+    //左闭右开,截取字符串，从1开始，到2结束
+    console.log(strJ.substring(1, 2)) //干
+    //第一个开始索引，2是长度
+    console.log(strJ.substr(0, 2)) //你干
+    //2个参数都是索引
+    console.log(strJ.slice(-1)) //!  -1是倒数1
+    console.log(strJ.slice(-3, -1)) //嘛啊    ,左闭右开
 
-    const shallowCopy = { ...original }
-    // shallowCopy.arr = [3, 5] //不触发,引用地址变化
-    shallowCopy.arr[0] = 34 //这样才会触发浅拷贝
-    console.log(shallowCopy, original)
+    let str = 'Hello    '
+    let s = str.includes('Hel', 0) // 假设从索引位置 0 开始搜索
+    console.log(s) // true
+    console.log(str.match(/e/g)) //['e']
+    console.log(str.trim()) //去除两端空格
+    console.log((1000.212).toFixed(2))
   </script>
 </html>

@@ -1,40 +1,31 @@
-import Vue from 'vue'
-import VueI18n from 'vue-i18n' // 引入国际化插件包
-import Cookies from 'js-cookie'
-import elementEnLocale from 'element-ui/lib/locale/lang/en' // element-ui 英文包
-import elementZhLocale from 'element-ui/lib/locale/lang/zh-CN' // element-ui 中文包
-import customEN from './en.js' // 自定义英语包
-import customZH from './zh.js' // 自定义中文包
+import { createI18n } from 'vue-i18n'
+// import { useAppStore } from '@/store/modules/app';
+import Elp_ZhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import Elp_en from 'element-plus/dist/locale/en.mjs'
 
-Vue.use(VueI18n) // 全局注册国际化包
+// const appStore = useAppStore();
+// 本地语言包
+import enLocale from './package/en.json'
+import zhCnLocale from './package/zh-cn.json'
 
 const messages = {
-  en: {
-    ...customEN,
-    ...elementEnLocale,
-  },
+  // 'zh-cn': {
+  //   ...zhCnLocale
+  // },
   zh: {
-    ...customZH,
-    ...elementZhLocale,
+    ...zhCnLocale,
+    ...Elp_ZhCn,
+  },
+  en: {
+    ...enLocale,
+    ...Elp_en,
   },
 }
-export function getLanguage() {
-  const chooseLanguage = Cookies.get('language')
-  if (chooseLanguage) return chooseLanguage
 
-  // 如果没有选择语言
-  const language = (navigator.language || navigator.browserLanguage).toLowerCase()
-  const locales = Object.keys(messages)
-  for (const locale of locales) {
-    if (language.indexOf(locale) > -1) {
-      return locale
-    }
-  }
-  return 'en' // 默认语言
-}
-const i18n = new VueI18n({
-  locale: getLanguage(),
-  messages,
+const i18n = createI18n({
+  legacy: false,
+  locale: window.localStorage.getItem('language') || 'zh',
+  messages: messages,
 })
 
 export default i18n

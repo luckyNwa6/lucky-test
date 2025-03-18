@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>框示例</title>
+    <style>
+      .ai-container {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        margin: 20px auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .ai-header {
+        background-color: #f18daf;
+        padding: 5px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        display: flex;
+        align-items: center;
+      }
+
+      .ai-header img {
+        width: 24px;
+        height: 24px;
+        margin-right: 10px;
+      }
+
+      .ai-header span {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .ai-header .ai-right {
+        margin-left: auto;
+        padding: 5px 10px;
+        background-color: #fff;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+      }
+
+      .ai-header .ai-right span {
+        font-size: 12px;
+        color: #f18daf;
+      }
+
+      .ai-content {
+        padding: 15px;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ai-container">
+      <div class="ai-header">
+        <img src="https://imgs.luckynwa.top/blog/robot.svg" alt="icon" />
+        <span style="color: #e6e6e6">AI摘要</span>
+        <div class="ai-right">
+          <span>BingAI</span>
+        </div>
+      </div>
+      <div class="ai-content">
+        <p id="ai-post">
+          这篇文章介绍了解决「NOIP2013」货车运输问题的算法。题目要求找到一条路径使得路径上的最小权值最大，并输出该最小权值。解决这个问题的思路是先使用Kruskal算法构建最小生成树，然后使用倍增的方式求解LCA（最近公共祖先）。在预处理LCA时，同时维护一个数组wi[u][k]表示点u上走2^k步时的最小权值。在LCA函数中，判断两个点是否连通，如果不连通则返回-1。最后输出最小权值即可。提供了带注释和无注释的代码实现。
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
