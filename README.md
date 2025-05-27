@@ -14,7 +14,18 @@ node 18.16.1
 
 推荐独立一个文件夹专门存测试项目的
 
-node 的测试需要 18
+node 的测试需要 18 折腾启动
+
+```
+npm install node-gyp -g
+
+npm config set registry https://registry.npmjs.org
+
+npm uninstall node-sass
+
+npm install sass
+
+```
 
 ## 🐼 补充
 

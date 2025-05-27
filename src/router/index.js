@@ -44,6 +44,11 @@ const routes = [
     component: () => import('@/views/aVueT/index2.vue'),
   },
   {
+    path: '/aVueT/index3',
+    name: 'aVueT',
+    component: () => import('@/views/aVueT/index3.vue'),
+  },
+  {
     path: '/dialog',
     name: 'dialog',
     component: () => import('@/views/dialog/index.vue'),
