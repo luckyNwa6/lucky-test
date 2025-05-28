@@ -6,7 +6,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 
 import '@/mock'
 import request from '@/utils/request'
-import '@/styles/index.scss' //重置样式
+import '@/styles/index.css' //重置样式
 import i18n from '@/lang'
 import Lang from '@/components/Lang'
 import * as echarts from 'echarts'
