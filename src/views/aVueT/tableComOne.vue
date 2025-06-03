@@ -9,6 +9,7 @@
       :page.sync="page"
       @row-click="rowClick"
       @row-del="rowDel"
+      @expand-change="expandChange"
       :cell-class-name="cellStyle"
       :row-class-name="rowClass"
     >
@@ -31,7 +32,8 @@
           "
           @click="handleAdd(row, 'add')"
         >
-          <i class="el-icon-plus"></i>
+          <!-- <i class="el-icon-plus"></i> -->
+          添加子节点
         </el-button>
         <el-button
           type="text"
@@ -40,7 +42,8 @@
           v-if="!disabledRows.includes(row[primaryField])"
           @click="handleAdd(row, 'beforeAdd')"
         >
-          <i class="el-icon-plus"></i>
+          <!-- <i class="el-icon-plus"></i> -->
+          上方插入
         </el-button>
         <el-button
           type="text"
@@ -49,18 +52,26 @@
           v-if="!disabledRows.includes(row[primaryField])"
           @click="handleAdd(row, 'afterAdd')"
         >
-          <i class="el-icon-plus"></i>
+          <!-- <i class="el-icon-plus"></i> -->
+          下方插入
         </el-button>
+        <el-button type="text" title="上移" size="small" v-if="!disabledRows.includes(row[primaryField])" @click="modeMove(row.id, 'up')">
+          上移
+        </el-button>
+
+        <el-button type="text" title="下移" size="small" v-if="!disabledRows.includes(row[primaryField])" @click="modeMove(row.id, 'down')">
+          下移
+        </el-button>
+
         <el-button
           type="text"
-          v-show="false"
-          title=""
-          icon="el-icon-edit"
+          title="删除"
+          icon="el-icon-delete"
           size="small"
           v-if="!disabledRows.includes(row[primaryField])"
-          @click="this.$refs.crud.rowEdit(row, index)"
+          @click="$refs.crud.rowDel(row, index)"
         >
-          <i class="el-icon-plus"></i>
+          删除
         </el-button>
       </template>
     </avue-crud>
@@ -73,7 +84,7 @@ export default {
   props: {
     needCheckRow: {
       type: [Boolean],
-      default: () => false,
+      default: () => true,
     },
     time: {
       type: [String, Number],
@@ -155,12 +166,10 @@ export default {
     getRequiredFields() {
       let requiredFields = []
       this.columns.map((item) => {
-        item.children.map((sItem) => {
-          let rules = sItem.rules || []
-          if (rules.length && rules.length > 0 && rules[0].required) {
-            requiredFields.push(sItem.prop)
-          }
-        })
+        let rules = item.rules || []
+        if (rules.length && rules.length > 0 && rules[0].required) {
+          requiredFields.push(item.prop)
+        }
       })
       return requiredFields
     },
@@ -224,9 +233,11 @@ export default {
   methods: {
     setELHeight() {
       this.$nextTick(() => {
-        let el = this.$refs.crud.$el
-        this.elHeight = el.offsetHeight + 40
-        console.log('设置了高度')
+        setTimeout(() => {
+          let el = this.$refs.crud.$el
+          this.elHeight = el.offsetHeight + 40
+          console.log('设置了高度')
+        }, 1500)
       })
     },
     sleep(time) {
@@ -242,7 +253,8 @@ export default {
       return new Promise(async (resolve, reject) => {
         await this.sleep(100)
         let isPass = true
-        if (Object.keys(this.nullRowObj).Length > 0) {
+
+        if (Object.keys(this.nullRowObj).length > 0) {
           for (let key in this.nullRowObj) {
             if (this.nullRowObj[key]) {
               isPass = false
@@ -257,11 +269,13 @@ export default {
     rowClass({ row, rowIndex }) {
       if (this.config.detail || !this.needCheckRow) return
       if (!this.disabledRows.includes(row[this.primaryField])) {
+        // console.log('🚀 ~ rowClass ~ this.disabledRows:', this.disabledRows)
+        // console.log('🚀 ~ rowClass ~ this.primaryField:', this.primaryField)
         let className = ''
         this.nullRowObj[rowIndex] = false
         for (let i = 0; i < this.getRequiredFields.length; i++) {
           let key = this.getRequiredFields[i]
-          if (!(this.acceptNullFields.includes(key) & this.acceptChildType.includes(row.type))) {
+          if (!(this.acceptNullFields.includes(key) && this.acceptChildType.includes(row.type))) {
             if (!row[key]) {
               className = 'nullRow'
               break
@@ -282,9 +296,9 @@ export default {
     },
 
     cellStyle({ column, columnIndex, row, rowIndex }) {
-      if (this.config.detail || !row.$scaleEdit) return '' //详情模式或非编辑行不需要校验
+      if (this.config.detail || !row.$cellEdit) return '' //详情模式或非编辑行不需要校验
       let { label = '', columnKey: prop = '' } = column
-      if (!row.$scaleEdit || !label || ['操作'].includes(label)) return // 当前行为编辑状态，操作栏不需要校验
+      if (!row.$cellEdit || !label || ['操作'].includes(label)) return // 当前行为编辑状态，操作栏不需要校验
       let propArr = findNodes(this.columns, (item) => item.prop === prop)
       // let propArr = this.columns.filter(item=>item.prop === prop)
       let { rules = [], cell = false } = propArr[0] || {}
@@ -300,27 +314,30 @@ export default {
           validatorNullFn = () => {},
         } = rules[0]
         if (!row[prop]) {
-          if (this.acceptNull && !this.columns.includes(prop)) {
+          if (this.acceptNullFields.includes(prop)) {
             if (validatorFn(row[prop], { prop, row, column })) return 'acceptNull'
             // if(validatorNullFn(row[prop],{prop,row,column})) return 'acceptNull'
             this.hasNullCell = true
             return 'isNull'
+          } else if (!validatorFn(row[prop], { prop, row, column })) {
+            return 'isNull'
           }
-          // else if (!validatorFn(row[prop], {prop, row, column})) {
-          return 'isNull'
         }
       }
+      return ''
     },
     modeMove(id = '', dir = 'up') {
       moveNode(this.dataObj, id, dir)
+      console.log('触发了-----modeMove')
       this.setELHeight()
     },
     async handleAdd(row, addType = 'add') {
       this.addType = addType
       this.parentId = row.id
       let { isPass = true } = await this.checkCell()
+      console.log('isPass', isPass)
       if (!isPass) {
-        this.$message.warning({ text: '请先填写完整再新增新一行' })
+        this.$message.warning('请先填写完整再新增新一行')
         return
       }
       let id = new Date().getTime()
@@ -335,12 +352,11 @@ export default {
         {
           id,
           $cellEdit: true,
-          functionManageType: row.functionManageType || '',
           children: [],
         },
         {
           type: this.addType || 'add',
-          primaryKey: this.primaryKey,
+          primaryKey: this.primaryField,
         }
       )
       this.setELHeight()
@@ -351,8 +367,8 @@ export default {
     async rowClick(row, column, e) {
       // console.log("点击了树行的数据................")
       if (row.$cellEdit || column.property === 'menu') return //禁止编辑的列
-      if (this.disabledRows.includes(row[this.primaryKey])) {
-        this.$message.warning({ text: '本行不允许编辑' })
+      if (this.disabledRows.includes(row[this.primaryField])) {
+        this.$message.warning('本行不允许编辑')
         return
       }
       editRow(this.dataObj, row.id, 'id', (item) => {
@@ -360,19 +376,16 @@ export default {
       })
     },
     rowDel(row, index) {
-      this.$confirm({
-        message: '确定将选择数据删除？',
-        options: {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning',
-        },
+      this.$confirm('确定将选择数据删除？', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
       })
         .then(() => {
           this.nullRowObj = {} // 节点有变化后清空空行信息
           let { id = '' } = row
           // console.log("id:", id)
-          editTree(this.dataObj, id, { obj: {} }, { params: { type: 'del' } })
+          editTree(this.dataObj, id, {}, { type: 'del' })
           // this.$refs.crud.refreshTable()
           this.setELHeight()
         })
@@ -417,8 +430,14 @@ export default {
 }
 </script>
 
-<style>
-.el-table .pdBlue {
-  background: #1e9fff;
-}
+<style lang="scss" scoped>
+// ::v-deep .autoHeaderHeight .avue-crud__header {
+//   min-height: auto;
+// }
+
+// ::v-deep .el-table .el-form-item {
+//   width: auto !important;
+//   max-width: 150px !important;
+// }
+//
 </style>

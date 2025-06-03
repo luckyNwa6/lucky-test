@@ -76,7 +76,7 @@ export const findNodes = (tree, predicate) => {
   })(tree)
   return result
 }
-export const editRow = (nodes = [], id = '', key = 'id', fn = (item) => item) => {
+export const editRow = (nodes = [], id, key = 'id', fn = (item) => item) => {
   if (!Array.isArray(nodes)) return
 
   for (let i = 0; i < nodes.length; i++) {
@@ -115,7 +115,7 @@ const arrHasRepeatObj = (arr, key = 'id') => {
   return duplicates
 }
 
-const moveNode = (nodes = [], id = '', dir = 'up', key = 'id') => {
+export const moveNode = (nodes = [], id = '', dir = 'up', key = 'id') => {
   if (!Array.isArray(nodes)) return
   if (!id) return
   for (let i = 0; i < nodes.length; i++) {

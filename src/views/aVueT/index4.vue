@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-card>
+    <!-- <el-card>
       <head-info
         ref="headInfoRef"
         :columns="headColumns"
@@ -9,22 +9,35 @@
         :repeatIds="headRepeatId"
         :data.sync="applyInfoObj['headInfo']"
       ></head-info>
+    </el-card> -->
+
+    <el-card>
+      <HeadInfoOne
+        ref="headInfoOneRef"
+        :columns="headColumnsOne"
+        :time="time"
+        :repeatIds="headRepeatId"
+        :data.sync="applyInfoObj['headInfoOne']"
+      ></HeadInfoOne>
     </el-card>
   </div>
 </template>
 
 <script>
-import HeadInfo from './tableCom.vue'
+import HeadInfo from './tableComDouble.vue'
+import HeadInfoOne from './tableComOne.vue'
 import { copyJsonTree } from './tool'
-import { serveInfoData } from './column'
+import { serveInfoData, serveInfoOneData } from './column'
 export default {
   components: {
     HeadInfo,
+    HeadInfoOne,
   },
   data() {
     return {
       applyInfoObj: {
         headInfo: JSON.parse(JSON.stringify(serveInfoData)),
+        headInfoOne: JSON.parse(JSON.stringify(serveInfoOneData)),
       },
       time: '',
       headRepeatId: [],
@@ -86,35 +99,47 @@ export default {
               label: '英文名称',
               prop: 'structCusName',
               cell: true,
-              width: '200',
+              width: 250,
+              align: 'left',
+              rules: [
+                {
+                  required: true,
+                  message: '请输入中文名称',
+                  trigger: 'blur',
+                },
+              ],
             },
             {
               label: '中文名称',
               prop: 'structCusAlias',
               width: '200',
+              cell: true,
             },
             {
               label: '数据类型',
               prop: 'typeCus',
               width: '200',
+              cell: true,
             },
             {
               label: '长度',
               prop: 'lengthCus',
               width: '200',
+              cell: true,
             },
             {
               label: '备注',
               prop: 'remarkCus',
+              headerslot: true,
               width: '200',
+              cell: true,
             },
           ],
         },
-
         {
           label: '',
           className: 'pbBlue',
-          width: 3,
+          width: 10,
         },
         {
           label: '提供方',
@@ -148,12 +173,75 @@ export default {
         },
       ]
     },
+    headColumnsOne() {
+      return [
+        {
+          label: '英文名称',
+          prop: 'structName',
+          width: 350,
+          maxlength: 50,
+          cell: true,
+          align: 'left',
+          rules: [
+            {
+              required: true,
+              message: '请输入英文名称',
+              trigger: 'blur',
+            },
+          ],
+        },
+        {
+          label: '中文名称',
+          prop: 'structAlias',
+          width: '200',
+          cell: true,
+          rules: [
+            {
+              required: true,
+              message: '请输入中文名称',
+              trigger: 'blur',
+            },
+          ],
+        },
+        {
+          label: '数据类型',
+          prop: 'type',
+          width: '200',
+          cell: true,
+        },
+        {
+          label: '长度',
+          prop: 'length',
+          width: '200',
+          cell: true,
+        },
+        {
+          label: '备注',
+          prop: 'remark',
+          width: '200',
+          cell: true,
+        },
+      ]
+    },
   },
 }
 </script>
 
-<style>
-:deep(.el-table .pbBlue) {
-  background: #1e9fff;
+<style lang="scss" scoped>
+::v-deep .el-table .pbBlue {
+  background: #1e9fff !important;
+}
+
+::v-deep .nullRow {
+  background-color: #f1b4b4;
+}
+
+::v-deep .repeatRow {
+  background-color: #e7b46929;
+}
+
+::v-deep .el-table .el-form-item {
+  width: auto;
+  max-width: 150px;
 }
 </style>
