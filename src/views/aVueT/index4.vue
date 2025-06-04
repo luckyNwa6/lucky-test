@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- <el-card>
+    <el-card>
       <head-info
         ref="headInfoRef"
         :columns="headColumns"
@@ -9,7 +9,7 @@
         :repeatIds="headRepeatId"
         :data.sync="applyInfoObj['headInfo']"
       ></head-info>
-    </el-card> -->
+    </el-card>
 
     <el-card>
       <HeadInfoOne
@@ -41,6 +41,8 @@ export default {
       },
       time: '',
       headRepeatId: [],
+      nowHeadChange: 'sofa报文头',
+      mappingSelectData: [],
     }
   },
   mounted() {
@@ -81,12 +83,65 @@ export default {
           ],
         },
       ]
-
+      let data2 = [
+        {
+          structName: 'root',
+          structAlias: '根节点',
+          id: '1',
+          parentId: '',
+          type: '',
+          children: [
+            {
+              structName: 'request',
+              structAlias: '请求',
+              id: '2',
+              parentId: '1',
+              type: '',
+              children: [
+                {
+                  structName: 'userId',
+                  structAlias: '用户id',
+                  id: '4',
+                  parentId: '2',
+                  type: 'String',
+                  children: [],
+                },
+                {
+                  structName: 'userName',
+                  structAlias: '用户名称',
+                  id: '5',
+                  parentId: '2',
+                  type: 'String',
+                  children: [],
+                },
+                {
+                  structName: 'userAge',
+                  structAlias: '用户年龄',
+                  id: '6',
+                  parentId: '2',
+                  type: 'Integer',
+                },
+              ],
+            },
+            {
+              structName: 'response',
+              structAlias: '响应',
+              id: '3',
+              parentId: '1',
+              type: '',
+              children: [],
+            },
+          ],
+        },
+      ]
+      this.mappingSelectData = data2
       copyJsonTree(data, this.applyInfoObj.headInfo, { $cellEdit: false })
       this.$nextTick(() => {
         this.time = new Date().getTime()
       })
     },
+
+    changeStructName({ value, row }) {},
   },
 
   computed: {
@@ -100,15 +155,35 @@ export default {
               prop: 'structCusName',
               cell: true,
               width: 250,
+              maxlength: 50,
               align: 'left',
-              rules: [
-                {
-                  required: true,
-                  message: '请输入中文名称',
-                  trigger: 'blur',
-                },
-              ],
+              filterable: true,
+              checkStrictly: true,
+              type: this.nowHeadChange != '自定义' ? 'cascader' : 'input',
+              dicData: this.mappingSelectData,
+              prop: {
+                label: 'structName',
+                value: 'id',
+              },
+              showSelectNodeBtn: true,
+              showAllLevels: false,
+              change: this.changeStructName,
             },
+
+            // {
+            //   label: '英文名称',
+            //   prop: 'structCusName',
+            //   cell: true,
+            //   width: 250,
+            //   align: 'left',
+            //   rules: [
+            //     {
+            //       required: true,
+            //       message: '请输入中文名称',
+            //       trigger: 'blur',
+            //     },
+            //   ],
+            // },
             {
               label: '中文名称',
               prop: 'structCusAlias',

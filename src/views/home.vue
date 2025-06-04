@@ -12,6 +12,9 @@
     <el-divider></el-divider>
     <p style="margin-bottom: 20px">路由跳转:</p>
     <el-button @click="goCharts">图表测试</el-button>
+    <el-select style="margin: 0 10px" v-model="avueValue" placeholder="请选择AVUE案例" @change="handleChange">
+      <el-option v-for="item in avueSelectOpt" :key="item.value" :label="item.label" :value="item.value"></el-option>
+    </el-select>
     <el-button @click="goAVue">aVue测试</el-button>
     <el-button @click="goScreen">大屏</el-button>
     <el-button @click="goDialog">弹框组件</el-button>
@@ -37,9 +40,19 @@ export default {
       },
       responseData: '',
       url: require('@/assets/imgs/Connect_logo_7.webp'),
+      avueValue: '',
+      avueSelectOpt: [
+        { value: '/aVueT', label: '基础' },
+        { value: '/aVueT/index2', label: '表单' },
+        { value: '/aVueT/index3', label: '子表单' },
+        { value: '/aVueT/index4', label: '特殊表格' },
+      ],
     }
   },
   methods: {
+    handleChange(path) {
+      this.$router.push(path)
+    },
     //下面是路由跳转
     goJisuanqi() {
       this.$router.push('/jisuanqi')
@@ -47,9 +60,7 @@ export default {
     goCharts() {
       this.$router.push('/chartsT')
     },
-    goAVue() {
-      this.$router.push({ path: '/aVueT', query: { id: '6', type: 'edit' } })
-    },
+
     goScreen() {
       this.$router.push('/screen')
     },

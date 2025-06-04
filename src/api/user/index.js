@@ -20,7 +20,7 @@ export function getOpenCityList(query) {
 export function getUserInfoList(data) {
   return request({
     url: '/api/openApi/getUserList',
-    method: 'post',
+    method: 'get',
     data,
   })
 }

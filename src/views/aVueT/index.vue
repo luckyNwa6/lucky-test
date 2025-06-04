@@ -166,14 +166,15 @@ export default {
       console.log('🚀 ~ banC ~ this.dicData:', this.dicData)
     },
     init() {
-      getOpenCityList('').then((res) => {
-        console.log('当前res的值:', res)
-        if (Array.isArray(res)) {
-          this.options = res.slice(0, 16)
-        } else {
-          console.error('Received data is not an array.')
-        }
-      })
+      //这个公用接口不行了
+      // getOpenCityList('').then((res) => {
+      //   console.log('当前res的值:', res)
+      //   if (Array.isArray(res)) {
+      //     this.options = res.slice(0, 16)
+      //   } else {
+      //     console.error('Received data is not an array.')
+      //   }
+      // })
     },
 
     remoteMethod(query) {

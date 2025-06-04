@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import axios from 'axios'
-
+import { Notification, MessageBox, Message, Loading } from 'element-ui'
 const request = axios.create({
   // baseURL: process.env.VUE_APP_BASE_API,
   timeout: 1000 * 60 * 2,
@@ -43,24 +43,28 @@ request.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // 处理未授权错误
-          this.$message.error('未授权')
+
+          Message({ message: '未授权', type: 'error' })
           break
         case 403:
           // 处理禁止访问错误
-          this.$message.error('禁止访问')
+
+          Message({ message: '禁止访问', type: 'error' })
           break
         case 404:
           // 处理找不到资源错误
-          this.$message.error('找不到资源')
+
+          Message({ message: '找不到资源', type: 'error' })
           break
         case 500:
           // 处理服务器内部错误
-          this.$message.error('服务器内部错误')
+
+          Message({ message: '服务器内部错误', type: 'error' })
           break
         // 可以继续添加其他状态码的处理逻辑
       }
     } else {
-      this.$message.error('请求失败')
+      Message({ message: '请求失败', type: 'error' })
       // 处理其他类型的错误（如网络问题）
     }
     return Promise.reject(error)
