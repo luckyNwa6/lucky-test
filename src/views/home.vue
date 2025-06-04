@@ -15,7 +15,7 @@
     <el-select style="margin: 0 10px" v-model="avueValue" placeholder="请选择AVUE案例" @change="handleChange">
       <el-option v-for="item in avueSelectOpt" :key="item.value" :label="item.label" :value="item.value"></el-option>
     </el-select>
-    <el-button @click="goAVue">aVue测试</el-button>
+
     <el-button @click="goScreen">大屏</el-button>
     <el-button @click="goDialog">弹框组件</el-button>
     <el-button @click="goStep">导航组件</el-button>

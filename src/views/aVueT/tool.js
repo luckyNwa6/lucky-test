@@ -151,3 +151,81 @@ export const copyJsonTree = (source, target, extraInfo = {}) => {
     }
   })
 }
+export const requestAndRespDeal = (node, type) => {
+  node.forEach((item) => {
+    if (type === 'request') {
+      if (item.xpath.includes('/request/')) {
+        item.disabled = true
+      }
+      if (item.xpath.includes('/response/')) {
+        item.disabled = false
+      }
+    } else if (type === 'response') {
+      if (item.xpath.includes('/response/')) {
+        item.disabled = true
+      }
+      if (item.xpath.includes('/request/')) {
+        item.disabled = false
+      }
+    }
+
+    if ('children' in item && item.children.length === 0) {
+      delete item.children
+    } else if ('children' in item && item.children.length) {
+      requestAndRespDeal(item.children, type)
+    }
+  })
+  return node
+}
+
+export const removeEmptyChildrenLucky = (node) => {
+  node.forEach((item) => {
+    if (item.structName == 'root') {
+      item.disabled = true
+    }
+    if (item.structName == 'request') {
+      item.disabled = true
+    }
+    if (item.structName == 'response') {
+      item.disabled = true
+    }
+
+    if ('children' in item && item.children.length === 0) {
+      delete item.children
+    } else if ('children' in item && item.children.length) {
+      removeEmptyChildrenLucky(item.children)
+    }
+  })
+  return node
+}
+
+export const LuckyGetValueByLabel = (arr = [], label = 'id', value, targetProp) => {
+  if (!Array.isArray(arr)) return
+  const item = arr.find((i) => i[label] === value)
+  return item ? item[targetProp] : '未找到对应字典数据label'
+}
+
+// 传入树节点 | key对应的v值 | 数组{默认key是id可以改} | 回溯返回查找到的树节点
+export const LuckyEditTree = (nodes = [], id = '', params = {}, callback) => {
+  if (!Array.isArray(nodes)) return
+  if (!id) return
+  const { key = 'id' } = params
+  const childEditTree = (nodes = [], id = '') => {
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i][key] === id) {
+        callback(nodes[i])
+        break
+      }
+      if (nodes[i].children && nodes[i].children.length > 0) {
+        childEditTree(nodes[i].children, id)
+      }
+    }
+  }
+  childEditTree(nodes, id)
+  return { nodes }
+}
+
+export const luckyGetLastString = (str, part = ',') => {
+  const lastIndex = str.lastIndexOf(part)
+  return lastIndex != -1 ? str.substring(lastIndex + 1).trim() : str
+}

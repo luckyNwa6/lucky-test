@@ -178,7 +178,7 @@ export default {
     config() {
       return {
         detail: false,
-        showMenu: true,
+        showMenu: false, //关闭操作栏
         showSelectNodeBtn: false,
         showAddBtn: true,
         ...this.params,
@@ -224,7 +224,76 @@ export default {
       }
     },
   },
+  mounted() {
+    this.enableDrag()
+  },
+  beforeDestroy() {
+    this.removeDragListeners()
+  },
   methods: {
+    removeDragListeners() {
+      if (this.tableBodyWrapper && this.handlers) {
+        // 移除所有事件监听
+        this.tableBodyWrapper.removeEventListener('mousedown', this.handlers.mousedown)
+        this.tableBodyWrapper.removeEventListener('mouseleave', this.handlers.mouseleave)
+        this.tableBodyWrapper.removeEventListener('mouseup', this.handlers.mouseup)
+        this.tableBodyWrapper.removeEventListener('mousemove', this.handlers.mousemove)
+        // 清除引用
+        this.tableBodyWrapper = null
+        this.handlers = null
+      }
+    },
+    enableDrag() {
+      this.$nextTick(() => {
+        const table = this.$refs.crud.$el
+        const tableBodyWrapper = table.querySelector('.el-table__body-wrapper')
+        if (!tableBodyWrapper) {
+          console.error('找不到表体')
+          return
+        }
+        // 保存DOM引用
+        this.tableBodyWrapper = tableBodyWrapper
+        // 定义具名事件处理函数并保存引用
+        const handlers = {
+          mousedown: (e) => {
+            const rect = tableBodyWrapper.getBoundingClientRect()
+            this.isDragDown = true
+            this.dragStartX = e.clientX - rect.left
+            this.dragScrollLeft = tableBodyWrapper.scrollLeft
+            tableBodyWrapper.style.cursor = 'grabbing'
+          },
+          mouseleave: () => {
+            this.isDragDown = false
+            tableBodyWrapper.style.cursor = 'grab'
+          },
+          mouseup: () => {
+            this.isDragDown = false
+            tableBodyWrapper.style.cursor = 'grab'
+          },
+          mousemove: (e) => {
+            if (!this.isDragDown) return
+            e.preventDefault()
+            const rect = tableBodyWrapper.getBoundingClientRect()
+            const x = e.clientX - rect.left
+            const walk = (x - this.dragStartX) * 3
+            tableBodyWrapper.scrollLeft = this.dragScrollLeft - walk
+          },
+        }
+
+        // 保存处理函数引用
+        this.handlers = handlers
+
+        // 绑定事件监听
+        tableBodyWrapper.addEventListener('mousedown', handlers.mousedown)
+        tableBodyWrapper.addEventListener('mouseleave', handlers.mouseleave)
+        tableBodyWrapper.addEventListener('mouseup', handlers.mouseup)
+        tableBodyWrapper.addEventListener('mousemove', handlers.mousemove)
+
+        // 隐藏滚动条
+        tableBodyWrapper.style.overflowX = 'hidden'
+      })
+    },
+
     setELHeight() {
       this.$nextTick(() => {
         let el = this.$refs.crud.$el

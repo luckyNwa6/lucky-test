@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-card>
+      <el-button @click="removeSelected">外部去除选中</el-button>
       <head-info
         ref="headInfoRef"
         :columns="headColumns"
@@ -11,7 +12,7 @@
       ></head-info>
     </el-card>
 
-    <el-card>
+    <!-- <el-card>
       <HeadInfoOne
         ref="headInfoOneRef"
         :columns="headColumnsOne"
@@ -19,15 +20,15 @@
         :repeatIds="headRepeatId"
         :data.sync="applyInfoObj['headInfoOne']"
       ></HeadInfoOne>
-    </el-card>
+    </el-card> -->
   </div>
 </template>
 
 <script>
 import HeadInfo from './tableComDouble.vue'
 import HeadInfoOne from './tableComOne.vue'
-import { copyJsonTree } from './tool'
-import { serveInfoData, serveInfoOneData } from './column'
+import { copyJsonTree, requestAndRespDeal, removeEmptyChildrenLucky, LuckyEditTree, luckyGetLastString } from './tool'
+import { serveInfoData, serveInfoOneData, resDataDouble, resMappingDouble } from './column'
 export default {
   components: {
     HeadInfo,
@@ -43,6 +44,9 @@ export default {
       headRepeatId: [],
       nowHeadChange: 'sofa报文头',
       mappingSelectData: [],
+      cloneMappingDataReq: [],
+      cloneMappingDataResp: [],
+      debounceTimer: null,
     }
   },
   mounted() {
@@ -50,100 +54,66 @@ export default {
   },
   methods: {
     init() {
-      let data = [
-        {
-          structCusName: 'root',
-          structName: 'root',
-          structAlias: '根节点',
-          id: '1',
-          parentId: '',
-          type: '',
-          typeCus: '',
-          children: [
-            {
-              structCusName: 'request',
-              structName: 'request',
-              structAlias: '请求',
-              id: '2',
-              parentId: '1',
-              type: '',
-              typeCus: '',
-              children: [],
-            },
-            {
-              structCusName: 'response',
-              structName: 'response',
-              structAlias: '响应',
-              id: '3',
-              parentId: '1',
-              type: '',
-              typeCus: '',
-              children: [],
-            },
-          ],
-        },
-      ]
-      let data2 = [
-        {
-          structName: 'root',
-          structAlias: '根节点',
-          id: '1',
-          parentId: '',
-          type: '',
-          children: [
-            {
-              structName: 'request',
-              structAlias: '请求',
-              id: '2',
-              parentId: '1',
-              type: '',
-              children: [
-                {
-                  structName: 'userId',
-                  structAlias: '用户id',
-                  id: '4',
-                  parentId: '2',
-                  type: 'String',
-                  children: [],
-                },
-                {
-                  structName: 'userName',
-                  structAlias: '用户名称',
-                  id: '5',
-                  parentId: '2',
-                  type: 'String',
-                  children: [],
-                },
-                {
-                  structName: 'userAge',
-                  structAlias: '用户年龄',
-                  id: '6',
-                  parentId: '2',
-                  type: 'Integer',
-                },
-              ],
-            },
-            {
-              structName: 'response',
-              structAlias: '响应',
-              id: '3',
-              parentId: '1',
-              type: '',
-              children: [],
-            },
-          ],
-        },
-      ]
-      this.mappingSelectData = data2
-      copyJsonTree(data, this.applyInfoObj.headInfo, { $cellEdit: false })
+      this.mappingSelectData = removeEmptyChildrenLucky(resMappingDouble)
+      this.cloneMappingDataReq = JSON.parse(JSON.stringify(requestAndRespDeal(this.mappingSelectData, 'response')))
+      this.cloneMappingDataResp = JSON.parse(JSON.stringify(requestAndRespDeal(this.mappingSelectData, 'request')))
+      copyJsonTree(resDataDouble, this.applyInfoObj.headInfo, { $cellEdit: false })
       this.$nextTick(() => {
         this.time = new Date().getTime()
       })
     },
 
-    changeStructName({ value, row }) {},
-  },
+    changeStructName({ value, row }) {
+      // 清除之前的定时器
+      clearTimeout(this.debounceTimer)
 
+      console.log('🚀 ~ changeStructName ~ value:', value)
+      console.log('🚀 ~ changeStructName ~ row:', row)
+
+      if (row.xpath.includes('/request/')) {
+        this.mappingSelectData = this.cloneMappingDataReq
+      } else if (row.xpath.includes('/response/')) {
+        this.mappingSelectData = this.cloneMappingDataResp
+      }
+
+      if (!value) {
+        LuckyEditTree(this.applyInfoObj.headInfo, row.id, { key: 'id' }, (item) => {
+          console.log('赋值.....')
+          item.structCusAlias = ''
+          item.remarkCus = ''
+          item.cusXpathId = ''
+        })
+      }
+
+      let returnSelectData = {}
+      let v = luckyGetLastString(value)
+      console.log('🚀 ~ changeStructName ~ v:', v)
+
+      LuckyEditTree(this.mappingSelectData, v, {}, (item) => {
+        console.log('获取到值mappingSelectData------------------', item)
+        returnSelectData = item
+      })
+
+      LuckyEditTree(this.applyInfoObj.headInfo, row.id, {}, (item) => {
+        item.structName = returnSelectData.structName
+      })
+
+      // 设置5秒后调用removeSelected
+      this.debounceTimer = setTimeout(() => {
+        this.removeSelected()
+      }, 5000)
+    },
+
+    removeSelected() {
+      let tempData = this.applyInfoObj.headInfo
+      this.applyInfoObj.headInfo = []
+      copyJsonTree(tempData, this.applyInfoObj.headInfo, { $cellEdit: false })
+    },
+  },
+  beforeDestroy() {
+    // 组件销毁前清除定时器
+    clearTimeout(this.debounceTimer)
+  },
   computed: {
     headColumns() {
       return [
@@ -161,7 +131,7 @@ export default {
               checkStrictly: true,
               type: this.nowHeadChange != '自定义' ? 'cascader' : 'input',
               dicData: this.mappingSelectData,
-              prop: {
+              props: {
                 label: 'structName',
                 value: 'id',
               },
