@@ -5,7 +5,7 @@
     <el-button @click="exit">退出登录</el-button>
     <el-button @click="testSession">测试Session</el-button>
     <el-divider></el-divider>
-    <el-button @click="mockTest">mock测试</el-button>
+    <el-button @click="mockTest()">mock测试</el-button>
     <el-divider></el-divider>
     数据回显区:😃
     <span>{{ responseData }}</span>
