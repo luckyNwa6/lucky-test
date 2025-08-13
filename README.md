@@ -8,7 +8,7 @@ testVue3-------->vue3 的各种包和组件测试
 
 ## 🐶 开发环境
 
-node 16+
+node 20
 
 包管理采用 pnpm
 
@@ -70,3 +70,13 @@ fix: 修复 bug
 npx localtunnel --port 8000
 
 选 y,点击链接跳转，点网站里的链接获取密码，复制粘贴提交，可公网访问，
+
+启动突然发现报错
+
+```shell
+esbuild.exe ENOENT  这个exe文件没有，去下载模块下看看，关闭火绒可能被拦截下载
+pnpm i esbuild@0.11.3
+手动去生成它，再启动即可
+node ./node_modules/esbuild/install.js
+
+```

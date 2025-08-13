@@ -62,6 +62,7 @@ export default defineConfig(({ command, mode }) => {
           additionalData: `
               @use "./src/styles/variable.scss" as * ;
               `,
+          silenceDeprecations: ['legacy-js-api'],
         },
       },
     },
