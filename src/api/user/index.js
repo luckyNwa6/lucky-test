@@ -19,7 +19,7 @@ export function getOpenCityList(query) {
 //获取lucky_api后端---公开的用户信息列表
 export function getUserInfoList(data) {
   return request({
-    url: '/api/openApi/getUserList',
+    url: '/api/openApi/lucky/getUserList',
     method: 'get',
     data,
   })
@@ -27,7 +27,7 @@ export function getUserInfoList(data) {
 
 export function addOrUpdateInfo(url, data) {
   return request({
-    url: `/api/openApi/${url}`,
+    url: `/api/openApi/lucky/${url}`,
     method: 'post',
     data,
   })

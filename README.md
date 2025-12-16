@@ -32,3 +32,6 @@ npm install sass
 yarn add jest
 
 yarn add jsdom
+
+使用 node20
+npm install -g pinme

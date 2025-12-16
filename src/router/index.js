@@ -44,6 +44,16 @@ const routes = [
     component: () => import('@/views/aVueT/index2.vue'),
   },
   {
+    path: '/aVueT/test',
+    name: 'aVueT',
+    component: () => import('@/views/aVueT/test.vue'),
+  },
+  {
+    path: '/aVueT/envCompare',
+    name: 'aVueT',
+    component: () => import('@/views/aVueT/envCompare.vue'),
+  },
+  {
     path: '/aVueT/index3',
     name: 'aVueT',
     component: () => import('@/views/aVueT/index3.vue'),
@@ -87,6 +97,11 @@ const routes = [
     path: '/dialogD',
     name: 'dialogD',
     component: () => import('@/views/dialog/demo.vue'),
+  },
+  {
+    path: '/g6',
+    name: 'g6',
+    component: () => import('@/views/g6/index.vue'),
   },
 ]
 

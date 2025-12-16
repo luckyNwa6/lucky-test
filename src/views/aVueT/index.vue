@@ -13,6 +13,7 @@
         :option="option"
         :table-loading="loading"
         :page="page"
+        :permission="permissionList"
         :data="data"
         :before-open="beforeOpen"
         :cell-style="cellStyle"
@@ -35,14 +36,20 @@
       >
         <template slot="userId" slot-scope="{ row }">
           <p v-if="row.userId % 2 == 0" style="color: red">{{ row.userId }}</p>
-          <p v-else>{{ row.userId }}</p>
+          <p v-else>{{ row.userId }}自定义表格列里的数据样式</p>
+        </template>
+        <template slot="menuLeft" slot-scope="{ size }">
+          <el-button :size="size" type="primary" icon="el-icon-plus">左上按钮</el-button>
+        </template>
+        <template slot="menu" slot-scope="{ row, index, size }">
+          <el-button :size="size" type="primary" icon="el-icon-view">表格行按钮</el-button>
         </template>
       </avue-crud>
     </el-card>
     <el-divider></el-divider>
     <el-card>
       <div slot="header"><span>avue-form表单</span></div>
-      <el-button @click="modClick" style="margin-bottom: 20px">切换模式</el-button>
+      <el-button @click="modClick" style="margin-bottom: 20px">切换详情/编辑模式</el-button>
       <el-button @click="checkForm">表单校验</el-button>
       <el-button @click="saveFrom">保存表单</el-button>
       <ServeInfo ref="serveInfo" :params="params" :data.sync="infoObj['serveInfo']" :columns="getColumn('serveInfo')" />
@@ -74,6 +81,8 @@ import ServeInfo from '@/components/ServeInfo.vue'
 import { serveInfoData } from '@/components/columnConfig.js'
 import CrudWell from '@/components/CrudWell.vue'
 import { getUserInfoList, getOpenCityList } from '@/api/user/index'
+import { map } from '@/mock/modules/list'
+import { mapGetters } from 'vuex'
 
 export default {
   components: {
@@ -143,7 +152,7 @@ export default {
       selectionList: [],
       currentRow: {},
       queryStr: '{}',
-
+      searchStr: '{}',
       cityTypeList: [
         { label: '北京', dataValue: '0' },
         { label: '杭州', dataValue: '1' },
@@ -151,7 +160,13 @@ export default {
       ],
     }
   },
+  //当页面有缓存问题
+  async activated() {
+    if (this.clearTempIsNeed()) this.clearTempData()
 
+    // this.$refs.crud.refreshTable() //解决表格缩放问题
+    // await this.onLoad(this.page)
+  },
   mounted() {
     this.init()
     let { type: typeName = '', id = '' } = this.$route.query //es6语法
@@ -160,6 +175,22 @@ export default {
     this.infoObj.serveInfo = this.handleLeftFixName(this.resData)
   },
   methods: {
+    clearTempIsNeed() {
+      // let { path = '' } = this.$route
+      // let currentTag = this.tagList.find((item) => item.value == path) || {}
+      // let { timeStr = '' } = currentTag
+      // let currentTime = new Date().getTime()
+      // let time = currentTime - +timeStr
+      // console.log("🚀 ~ clearTempIsNeed ~ time:", time)
+      // if (time < 3000) return true
+      return true
+    },
+    clearTempData() {
+      this.search = {}
+      this.searchStr = '{}'
+      this.$$refs.crud.searchReset()
+      this.onLoad(this.page)
+    },
     banC() {
       // this.dicData[0]['children'][0]['children'][0].disabled = true
       this.$set(this.dicData[0].children[0].children[0], 'disabled', !this.dicData[0].children[0].children[0].disabled)
@@ -212,12 +243,14 @@ export default {
     //下面是表格的
     onLoad(page = {}, params = {}) {
       //接口请求数据
+      let queryObj = JSON.parse(this.searchStr)
       getUserInfoList({ ...params, limit: page.pageSize, total: page.total, page: page.currentPage })
         .then((res) => {
           console.log('当前返回的list是', res)
-          if (res.code === 0) {
-            this.data = res.data.list
-            this.page.total = res.data.totalCount
+          if (res.code === 200) {
+            this.data = res.rows || []
+            console.log('🚀 ~ onLoad ~ res.rows:', res.rows)
+            this.page.total = res.total || 0
           }
         })
         .catch((err) => {
@@ -283,14 +316,14 @@ export default {
     searchChange(params, done) {
       console.log('params', params)
       this.query = { ...params }
-      this.queryStr = JSON.stringify(params)
+      this.searchStr = JSON.stringify(params)
       this.page.currentPage = 1
       this.onLoad(this.page, params)
       done()
     },
     searchReset() {
       this.query = {}
-      this.queryStr = '{}'
+      this.searchStr = '{}'
       this.page = {
         pageSize: 10,
         currentPage: 1,
@@ -321,6 +354,16 @@ export default {
     },
   },
   computed: {
+    // ...mapGetters(['permission']),
+    permissionList() {
+      // logger.log('🚀 ~ computed ~ permissionList:', this.permission)
+      return {
+        addBtn: false,
+        viewBtn: false,
+        editBtn: false,
+        delBtn: false, //常用的4个按钮自带权限,可以去弄个方法vaildData( this.permission.serve_delBtn,false)默认false
+      }
+    },
     getColumn() {
       return (name = '') => {
         if (['serveInfo'].includes(name)) {
@@ -394,13 +437,22 @@ export default {
         // searchBtnIcon: 'el-icon-user',//修改搜索按钮的图标
         // excelBtn: false,
         // filterBtn: false,
-
+        tip: true, //选择框的提示语
         column: [
+          {
+            label: '序号',
+            prop: '_descIndex',
+            width: 80,
+            formatter: (row, column, cellValue, index) => {
+              const list = (this.infoObj && this.infoObj.serveInfo && this.infoObj.serveInfo.envInfo) || []
+              return list.length - index
+            },
+          },
           {
             label: 'id',
             prop: 'userId',
             slot: true, //插槽
-            // sortable: true, //开启排序
+            sortable: true, //开启排序
           },
           {
             label: '昵称',
@@ -464,6 +516,7 @@ export default {
             label: '备注',
             prop: 'remark',
             search: true, //搜索
+            // hide: true,//隐藏列
             overHidden: true, //字数多悬浮查看
           },
         ],
@@ -537,7 +590,7 @@ export default {
           label: '区域',
           prop: 'area',
           disabled: true,
-          display: ['1'].includes(this.infoObj.serveInfo.city),
+          display: ['1'].includes(this.infoObj.serveInfo.city), //是否隐藏当前表单项
         },
         {
           label: '备注',

@@ -70,7 +70,9 @@ export default {
         `
             } else {
               relVal += `<span style="display:inline-block;padding-bottom:20px;width:1px;"></span>
-        <span style="display:inline-block;margin-right:5px;margin-bottom:4px;border-radius:10px;width:13px;height:3px;background-color:${params[i].color};"></span>
+        <span style="display:inline-block;margin-right:5px;margin-bottom:4px;border-radius:10px;width:13px;height:3px;background-color:${
+          params[i].color
+        };"></span>
         ${params[i].seriesName}: ${params[i].value || '-'}Mpa<br/>
         时间: ${params[i].axisValue}
         `

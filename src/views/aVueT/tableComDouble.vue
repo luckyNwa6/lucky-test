@@ -72,6 +72,7 @@
 
 <script>
 import { editRow, editTree2, editTree, findNodes, findRepeatFields, moveNode } from './tool'
+
 export default {
   props: {
     needCheckRow: {

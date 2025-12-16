@@ -2,13 +2,13 @@
   <div>
     <avue-form ref="form" v-model="baseInfoObj" :option="baseInfoOption">
       <template slot="nameLabel" slot-scope="{}">
-        <span>姓名辣&nbsp;&nbsp;</span>
+        <span>label辣&nbsp;&nbsp;</span>
         <el-tooltip class="item" effect="dark" content="文字提示哈哈哈" placement="top-start">
           <i class="el-icon-warning" />
         </el-tooltip>
       </template>
       <template slot="name" slot-scope="{ disabled, size }">
-        <el-input v-model="baseInfoObj.name" :disabled="disabled" :size="size" placeholder="请输入名称自定义"></el-input>
+        <el-input v-model="baseInfoObj.name" :disabled="disabled" :size="size" placeholder="请输入名称自定义" />
       </template>
     </avue-form>
   </div>
