@@ -1,380 +1,394 @@
 <template>
-  <div id="mountNode"></div>
+  <div class="page">
+    <!-- G6 底层画布 -->
+    <div id="g6-container"></div>
+
+    <!-- 左下：双折线 -->
+    <div class="left-panel">
+      <div id="lineChart1" class="chart-box"></div>
+      <div id="lineChart2" class="chart-box"></div>
+    </div>
+
+    <!-- 右侧整体区域 -->
+    <div class="right-zone">
+      <!-- 右侧纵向指标卡 -->
+      <div class="right-cards">
+        <div class="stat-card" v-for="(item, index) in cards" :key="index">
+          <div class="card-title">{{ item.title }}</div>
+          <div class="card-content">
+            <div v-for="(row, i) in item.rows" :key="i">
+              <span>{{ row.label }}</span>
+              <span class="num">{{ row.value }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 服务调用排行 -->
+      <div class="rank-panel">
+        <div class="card-title">服务调用排行</div>
+        <ul class="rank-list">
+          <li v-for="(item, index) in rankData" :key="index">
+            <span class="rank">{{ index + 1 }}</span>
+            <span class="name">{{ item.name }}</span>
+            <span class="count">{{ item.count }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import G6 from '@antv/g6'
+import * as echarts from 'echarts'
+
 export default {
   data() {
     return {
-      // 节点信息
-      nodes: [
+      graph: null,
+      rankData: [
+        { name: '订单服务', count: 5230 },
+        { name: '用户服务', count: 4310 },
+        { name: '支付服务', count: 3890 },
+        { name: '库存服务', count: 3120 },
+        { name: '日志服务', count: 2750 },
+      ],
+      cards: [
         {
-          // 点的数据
-          id: 'node0',
-          x: 100, // 节点x轴位置
-          y: 400, // 节点y轴位置
-          size: 60, // 图形尺寸,注意：该数据类型会根据type变化,一定要看官方文档，这里表示的是圆的直径
-          type: 'circle', // 节点的形状
-          label: 'circle圆形', // 节点的文本名称
+          title: 'PaaS 服务管控平台',
+          rows: [
+            { label: '自动对比次数', value: '128（10:32）' },
+            { label: '已对比服务数', value: 86 },
+            { label: '已登记服务数', value: 102 },
+            { label: '未登记服务数', value: 16 },
+          ],
         },
         {
-          id: 'node1',
-          x: 100,
-          y: 100,
-          size: 60,
-          type: 'circle',
-          label: 'circle圆形',
+          title: '服务推送情况',
+          rows: [
+            { label: '核心开发平台推送数', value: 12 },
+            { label: '信创开发平台推送数', value: 8 },
+          ],
         },
         {
-          id: 'node2',
-          x: 220,
-          y: 100,
-          size: [90, 50], // 数组的形式，节点的长宽值
-          type: 'rect',
-          label: 'rect矩形',
+          title: '一体化测试平台',
+          rows: [
+            { label: '同步服务次数', value: 34 },
+            { label: '已同步服务数', value: 28 },
+          ],
         },
         {
-          id: 'node3',
-          x: 350,
-          y: 100,
-          size: [80, 40],
-          type: 'ellipse',
-          label: 'ellipse椭圆',
-          labelCfg: {
-            // 文本配置项
-            position: 'bottom', // 文本相对于节点的位置
-            offset: 5, // 文本的偏移
-            style: {}, // 设置文本标签的样式
-          },
-          style: {
-            // 设置节点的样式 (注意区分上面的style对象)
-            fill: '#fa8c16', // 节点填充色
-            stroke: '#000', // 节点的描边颜色
-            lineWidth: 2, // 描边宽度
-          },
-        },
-        {
-          id: 'node4',
-          x: 460,
-          y: 100,
-          size: [100, 80],
-          type: 'diamond',
-          label: 'diamond菱形',
-        },
-        {
-          id: 'node5',
-          x: 600,
-          y: 100,
-          type: 'triangle',
-          label: 'triangle三角形',
-          labelCfg: {
-            position: 'right',
-            offset: 5,
-          },
-        },
-        {
-          id: 'node6',
-          x: 220,
-          y: 210,
-          size: 65,
-          type: 'star',
-          label: 'star五角星',
-        },
-        {
-          id: 'node7',
-          x: 350,
-          y: 220,
-          size: 60,
-          type: 'image',
-          img: 'https://gw.alipayobjects.com/os/s/prod/antv/assets/image/logo-with-text-73b8a.svg', // 图片路径
-          label: 'image自定义图片',
-        },
-        {
-          id: 'node8',
-          x: 550,
-          y: 220,
-          description: '描述文本xxxxxxxxxxx', // 描述
-          type: 'modelRect',
-          label: 'modelRect文本描述',
+          title: '服务接入情况',
+          rows: [
+            { label: '接入系统总数', value: 42 },
+            { label: '服务总数', value: 310 },
+            { label: '已发布服务数', value: 278 },
+            { label: '已上线服务数', value: 260 },
+          ],
         },
       ],
-      //边信息
-      edges: [
-        {
-          source: 'node0', // 起始点id
-          target: 'node6', // 结束点id
-          type: 'line', // 边的类型，默认为 'line'
-          label: '文本文字', // 文本文字，没有则不会显示
-          labelCfg: {
-            // 文本配置
-            refX: '0', // 标签在 x 方向的偏移量
-            refY: '10', // 标签在 y 方向的偏移量
-            position: 'top', // 文本相对于边的位置
-            autoRotate: true, // 标签文字是否跟随边旋转
-            style: {
-              // 文本样式
-              fill: 'skyblue', // 文本颜色
-              stroke: 'red', // 文本描边颜色
-              lineWidth: 1, // 文本描边粗细
-              opacity: 0.9, // 文本透明度
-              // ……
-            },
-          }, // 文本文字的配置样式
-          style: {
-            // 修改边的属性
-            endArrow: true, // 结束端绘制箭头
-            lineWidth: 4, // 线宽
-            stroke: 'red', // 边颜色
-          },
-        },
-        {
-          source: 'node1',
-          target: 'node2',
-        },
-        {
-          source: 'node2',
-          target: 'node3',
-        },
-        {
-          source: 'node1',
-          target: 'node3',
-        },
-        {
-          source: 'node3',
-          target: 'node4',
-        },
-        {
-          source: 'node4',
-          target: 'node5',
-        },
-        {
-          source: 'node1',
-          target: 'node6',
-        },
-        {
-          source: 'node1',
-          target: 'node7',
-        },
-        {
-          source: 'node6',
-          target: 'node7',
-        },
-        {
-          source: 'node7',
-          target: 'node8',
-        },
-        {
-          source: 'node8',
-          target: 'node5',
-        },
-      ],
-      graph: [],
     }
   },
+
+  mounted() {
+    this.$nextTick(() => {
+      this.initGraph()
+      this.initLineCharts()
+      window.addEventListener('resize', this.resizeGraph)
+    })
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('resize', this.resizeGraph)
+  },
+
   methods: {
-    init() {
-      // 数据汇总
+    /* ================= G6 ================= */
+    initGraph() {
+      const container = document.getElementById('g6-container')
+
       const data = {
-        nodes: this.nodes,
-        edges: this.edges,
+        nodes: [
+          {
+            id: 'gateway',
+            label: '分布式网关\n核心集群',
+            x: 520,
+            y: 260,
+            type: 'rect',
+            size: [160, 80],
+            style: { fill: '#E6F7FF', stroke: '#1890FF' },
+          },
+          { id: 'core1', label: '系统1', x: 200, y: 200 },
+          { id: 'core2', label: '系统2', x: 200, y: 260 },
+          { id: 'core3', label: '系统3', x: 200, y: 320 },
+          { id: 'scene1', label: '系统A', x: 820, y: 200 },
+          { id: 'scene2', label: '系统B', x: 820, y: 260 },
+          { id: 'scene3', label: '系统C', x: 820, y: 320 },
+        ],
+        edges: [
+          { source: 'core1', target: 'gateway' },
+          { source: 'core2', target: 'gateway' },
+          { source: 'core3', target: 'gateway' },
+          { source: 'gateway', target: 'scene1' },
+          { source: 'gateway', target: 'scene2' },
+          { source: 'gateway', target: 'scene3' },
+        ],
       }
-      // 图实例
-      // const grid = new Grid()
-      this.graph = new G6.Graph({
-        container: 'mountNode', // 图的 DOM 容器，可以传入该 DOM 的 id 或者直接传入容器的 HTML 节点对象
-        width: 1000, // 指定画布宽度，单位为 'px'，默认为画布容器宽度
-        height: 1000, // 指定画布高度，单位为 'px'，默认为画布容器高度
-        modes: {
-          // default: ['drag-canvas', 'zoom-canvas', 'drag-node'] // 允许拖拽画布、放缩画布、拖拽节点
-          default: [
-            'drag-canvas',
-            'drag-node',
-            {
-              type: 'tooltip', // 提示框
-              formatText(model) {
-                // 提示框文本内容
-                const text = 'label: ' + model.label + '<br/> class: ' + model.class
-                return text
-              },
-            },
-          ], // 允许拖拽画布、拖拽节点
+
+      const tooltip = new G6.Tooltip({
+        offsetX: 10,
+        offsetY: 10,
+        itemTypes: ['node'],
+        getContent(e) {
+          const model = e.item.getModel()
+          const div = document.createElement('div')
+          div.innerHTML = `
+            <div style="font-weight:600">${model.label}</div>
+            <div style="font-size:12px;color:#666">ID：${model.id}</div>
+            <div style="color:#999;font-size:11px">点击查看详情</div>
+          `
+          return div
         },
-        // plugins: [grid],
-        // fitView: true, // 是否开启画布自适应。开启后图自动适配画布大小。
-        defaultEdge: {
-          // 默认状态下边的配置,可看上一节
-          type: 'line',
+      })
+
+      this.graph = new G6.Graph({
+        container: 'g6-container',
+        width: container.clientWidth,
+        height: container.clientHeight,
+        backgroundColor: 'transparent',
+        plugins: [tooltip],
+        minZoom: 0.5,
+        maxZoom: 2,
+        modes: {
+          default: ['drag-node', 'drag-canvas', 'zoom-canvas'],
+        },
+        defaultNode: {
+          type: 'rect',
+          size: [90, 36],
           style: {
-            endArrow: true,
-            lineWidth: 2,
-            stroke: '#666',
+            fill: '#fff',
+            stroke: '#5B8FF9',
+            radius: 4,
           },
         },
         nodeStateStyles: {
-          // 鼠标 hover 上节点，即 hover 状态为 true 时的样式
-          hover: {
-            fill: 'pink',
-          },
-          // 鼠标点击节点，即 click 状态为 true 时的样式
-          click: {
-            stroke: '#000',
-            lineWidth: 3,
+          active: {
+            stroke: '#ff4d4f',
+            lineWidth: 2,
           },
         },
-        // 边不同状态下的样式集合
-        edgeStateStyles: {
-          // 鼠标点击边，即 click 状态为 true 时的样式
-          click: {
-            stroke: 'steelblue',
+        defaultEdge: {
+          style: {
+            stroke: '#91d5ff',
+            lineWidth: 2,
+            lineDash: [6, 4],
+            endArrow: {
+              path: G6.Arrow.triangle(8, 10, 0),
+              fill: '#91d5ff',
+            },
           },
         },
       })
-      // 鼠标进入节点
+
       this.graph.on('node:mouseenter', (e) => {
-        const nodeItem = e.item // 获取鼠标进入的节点元素对象
-        this.graph.setItemState(nodeItem, 'hover', true) // 设置当前节点的 hover 状态为 true
+        this.graph.setItemState(e.item, 'active', true)
       })
 
-      // 鼠标离开节点
       this.graph.on('node:mouseleave', (e) => {
-        const nodeItem = e.item // 获取鼠标离开的节点元素对象
-        this.graph.setItemState(nodeItem, 'hover', false) // 设置当前节点的 hover 状态为 false
+        this.graph.setItemState(e.item, 'active', false)
       })
 
-      // 点击节点
-      this.graph.on('node:click', (e) => {
-        // 先将所有当前是 click 状态的节点置为非 click 状态
-        const clickNodes = this.graph.findAllByState('node', 'click')
-        clickNodes.forEach((cn) => {
-          this.graph.setItemState(cn, 'click', false)
-        })
-        const nodeItem = e.item // 获取被点击的节点元素对象
-        this.graph.setItemState(nodeItem, 'click', true) // 设置当前节点的 click 状态为 true
+      this.graph.on('node:click', () => {
+        window.open('https://www.baidu.com', '_blank')
       })
-
-      // 点击边
-      this.graph.on('edge:click', (e) => {
-        // 先将所有当前是 click 状态的边置为非 click 状态
-        const clickEdges = this.graph.findAllByState('edge', 'click')
-        clickEdges.forEach((ce) => {
-          this.graph.setItemState(ce, 'click', false)
-        })
-        const edgeItem = e.item // 获取被点击的边元素对象
-        this.graph.setItemState(edgeItem, 'click', true) // 设置当前边的 click 状态为 true
-      })
-      // 注意这两需要搭配使用才会有效果
-      this.graph.data(data) // 初始化的图数据，是一个包括 nodes 数组和 edges 数组的对象
-      this.graph.render() // 接收数据，并进行渲染，read 方法的功能相当于 data 和 render 方法的结合
-    },
-    initG6() {
-      // 数据请求
-      fetch('https://gw.alipayobjects.com/os/antvdemo/assets/data/algorithm-category.json')
-        .then((res) => res.json())
-        .then((data) => {
-          // 获取容器id
-          const container = document.getElementById('mountNode')
-          // 宽高
-          const width = container.scrollWidth
-          const height = container.scrollHeight || 600
-          // 图配置，注意这里是TreeGraph --> 树图， Graph --> 图
-          const graph = new G6.TreeGraph({
-            container: 'mountNode',
-            width,
-            height,
-            modes: {
-              default: [
-                // 官方文档给的不是很明确，有很多方法需要我们通过样例了解
-                {
-                  type: 'collapse-expand', // 节点的展示
-                  onChange: function onChange(item, collapsed) {
-                    const data = item.getModel()
-                    data.collapsed = collapsed
-                    return true
-                  },
-                },
-                'drag-canvas', // 拖动
-                'zoom-canvas', // 缩放
-              ],
-            },
-            defaultNode: {
-              // 设置默认节点
-              size: 26, // 节点大小
-              anchorPoints: [
-                // 指定边连入节点的连接点的位置
-                [0, 0.5],
-                [1, 0.5],
-              ],
-            },
-            defaultEdge: {
-              // 设置默认边
-              type: 'cubic-horizontal', // 边类型
-            },
-            layout: {
-              type: 'compactBox', // 树布局
-              direction: 'LR', // 看官网, 以下配置需要根据官网给的参数进行自定义配置
-              getId: function getId(d) {
-                // 节点 id 的回调函数
-                return d.id
-              },
-              getHeight: function getHeight() {
-                // 每个节点的高度
-                return 16
-              },
-              getWidth: function getWidth() {
-                // 每个节点的宽度
-                return 16
-              },
-              getVGap: function getVGap() {
-                // 每个节点的垂直间隙
-                return 10
-              },
-              getHGap: function getHGap() {
-                // 每个节点的水平间隙
-                return 100
-              },
-            },
-          })
-          graph.node(function (node) {
-            // 对各个节点样式及其他配置进行设置
-            return {
-              label: node.id,
-              labelCfg: {
-                offset: 10,
-                position: node.children && node.children.length > 0 ? 'left' : 'right',
-              },
-            }
-          })
-          graph.data(data) // 初始化数据
-          graph.render() // 渲染
-          graph.fitView() // 支持伸缩
-          if (typeof window !== 'undefined') {
-            // 尺寸自适应
-            window.onresize = () => {
-              if (!graph || graph.get('destroyed')) return
-              if (!container || !container.scrollWidth || !container.scrollHeight) return
-              graph.changeSize(container.scrollWidth, container.scrollHeight)
-            }
+      this.graph.getEdges().forEach((edge) => {
+        edge.animate(
+          {
+            lineDashOffset: -20,
+          },
+          {
+            repeat: true,
+            duration: 2000,
           }
-        })
+        )
+      })
+      this.graph.data(data)
+      this.graph.render()
     },
-  },
-  mounted() {
-    this.init()
-    // this.initG6()
+
+    resizeGraph() {
+      if (!this.graph) return
+      const container = document.getElementById('g6-container')
+      this.graph.changeSize(container.clientWidth, container.clientHeight)
+    },
+
+    /* ================= ECharts ================= */
+    initLineCharts() {
+      this.initLine('lineChart1', '系统接入趋势', [10, 22, 28, 35, 50])
+      this.initLine('lineChart2', '服务调用趋势', [120, 180, 260, 310, 420])
+    },
+
+    initLine(domId, title, data) {
+      const chart = echarts.init(document.getElementById(domId))
+      chart.setOption({
+        title: { text: title, left: 'center', textStyle: { fontSize: 14 } },
+        tooltip: { trigger: 'axis' },
+        grid: { left: 40, right: 20, top: 40, bottom: 30 },
+        xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月'] },
+        yAxis: { type: 'value' },
+        series: [{ type: 'line', smooth: true, data }],
+      })
+    },
   },
 }
 </script>
 
-<style>
-/* 提示框的样式 */
-.g6-tooltip {
-  border: 1px solid #e2e2e2;
-  border-radius: 4px;
+<style scoped>
+.page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* G6 */
+#g6-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* 左下折线 */
+.left-panel {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  width: 820px;
+  display: flex;
+  gap: 16px;
+  z-index: 10;
+}
+
+.chart-box {
+  flex: 1;
+  height: 220px;
+  padding: 8px;
+}
+
+/* 右侧区域 */
+.right-zone {
+  position: absolute;
+  top: 80px;
+  right: 24px;
+  bottom: 24px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+}
+
+.right-cards {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+/* 通用卡片 */
+.stat-card,
+.rank-panel,
+.chart-box {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card {
+  padding: 12px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2d3d;
+  margin-bottom: 10px;
+  padding-left: 8px;
+  border-left: 3px solid #1890ff;
+}
+
+.card-content > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+  color: #59636e;
+}
+
+.num {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* 排行榜 */
+.rank-panel {
+  padding: 12px;
+  height: 260px;
+}
+
+.rank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rank-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1890ff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
-  color: #545454;
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 10px 8px;
-  box-shadow: rgb(174, 174, 174) 0px 0px 10px;
+}
+
+.rank-list li:nth-child(1) .rank {
+  background: #f5222d;
+}
+.rank-list li:nth-child(2) .rank {
+  background: #fa8c16;
+}
+.rank-list li:nth-child(3) .rank {
+  background: #fadb14;
+  color: #333;
+}
+
+.name {
+  flex: 1;
+  font-size: 13px;
+}
+
+.count {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+/* 禁止误选 */
+.stat-card,
+.rank-panel,
+.left-panel {
+  user-select: none;
 }
 </style>
