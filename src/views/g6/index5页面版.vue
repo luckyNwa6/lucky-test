@@ -17,7 +17,7 @@
       <el-card class="side-card stat-card" shadow="never">
         <div slot="header" class="card-header-box">
           <i class="el-icon-connection icon-header blue"></i>
-          <span class="card-header-title">调用数量统计</span>
+          <span class="card-header-title">过网关调用数</span>
         </div>
         <div class="horizontal-grid">
           <div class="grid-item-box" v-for="item in callData" :key="item.label">
@@ -30,7 +30,7 @@
       <el-card class="side-card stat-card" shadow="never">
         <div slot="header" class="card-header-box">
           <i class="el-icon-share icon-header green"></i>
-          <span class="card-header-title">调用数量统计（通过分布式网关平台调用）</span>
+          <span class="card-header-title">直连调用数</span>
         </div>
         <div class="horizontal-grid">
           <div class="grid-item-box" v-for="item in directData" :key="item.label">
@@ -56,7 +56,7 @@
     </div>
 
     <div class="right-sidebar">
-      <div class="right-scroll-container" v-loading="loading">
+      <div class="right-scroll-container">
         <div v-for="(item, index) in businessCards" :key="'bus-' + index" class="custom-card">
           <div class="custom-card-header">
             <span class="card-header-title mini">{{ item.title }}</span>
@@ -78,21 +78,21 @@
               <div class="p-item-box gray">
                 <div class="p-icon-bg"><i class="el-icon-document"></i></div>
                 <div class="p-info">
-                  <div class="p-v">{{ processData.toSubmit }}</div>
+                  <div class="p-v">96</div>
                   <div class="p-l">待提交</div>
                 </div>
               </div>
               <div class="p-item-box orange">
                 <div class="p-icon-bg"><i class="el-icon-loading"></i></div>
                 <div class="p-info">
-                  <div class="p-v">{{ processData.approving }}</div>
+                  <div class="p-v">12</div>
                   <div class="p-l">审批中</div>
                 </div>
               </div>
               <div class="p-item-box green">
                 <div class="p-icon-bg"><i class="el-icon-circle-check"></i></div>
                 <div class="p-info">
-                  <div class="p-v">{{ processData.completed }}</div>
+                  <div class="p-v">84</div>
                   <div class="p-l">已完成</div>
                 </div>
               </div>
@@ -106,14 +106,14 @@
           </div>
           <div class="custom-card-body rank-body">
             <div class="rank-filters-row">
-              <el-select v-model="consumerValue" size="mini" placeholder="消费方" clearable style="width: 48%">
-                <el-option v-for="opt in consumerOptions" :key="opt" :label="opt" :value="opt"></el-option>
+              <el-select v-model="consumerValue" size="mini" placeholder="消费方" style="width: 48%" clearable>
+                <el-option label="订单系统" value="order"></el-option>
               </el-select>
-              <el-select v-model="providerValue" size="mini" placeholder="提供方" clearable style="width: 48%">
-                <el-option v-for="opt in providerOptions" :key="opt" :label="opt" :value="opt"></el-option>
+              <el-select v-model="providerValue" size="mini" placeholder="提供方" style="width: 48%" clearable>
+                <el-option label="支付中心" value="pay"></el-option>
               </el-select>
             </div>
-            <el-table :data="filteredRankData" size="mini" class="modern-table">
+            <el-table :data="rankTableData" size="mini" class="modern-table">
               <el-table-column prop="consumer" label="消费方系统" show-overflow-tooltip></el-table-column>
               <el-table-column prop="provider" label="提供方系统" show-overflow-tooltip></el-table-column>
               <el-table-column prop="count" label="次数" width="70" align="center">
@@ -128,359 +128,121 @@
     </div>
   </div>
 </template>
+
 <script>
 import G6 from '@antv/g6'
 
 export default {
   data() {
     return {
-      loading: false,
       graph: null,
       edgeTimer: null,
+      isGateway: true,
       consumerValue: '',
       providerValue: '',
-
-      /* ===============================
-       * 默认值 = 0（结构固定）
-       * =============================== */
       assetData: [
-        { label: '已接入系统数', value: 0 },
-        { label: '服务总数', value: 0 },
-        { label: '已发布服务数', value: 0 },
-        { label: '已上线服务数', value: 0 },
+        { label: '已接入系统数', value: 42 },
+        { label: '服务总数', value: 156 },
+        { label: '已发布服务数', value: 310 },
+        { label: '已上线服务数', value: 1240 },
       ],
       callData: [
-        { label: '审批中', value: 0 },
-        { label: '已发布', value: 0 },
-        { label: '已上线', value: 0 },
-        { label: '总数', value: 0 },
+        { label: '审批中', value: 28 },
+        { label: '已发布', value: 142 },
+        { label: '已上线', value: 896 },
+        { label: '总数', value: 1066 },
       ],
       directData: [
-        { label: '审批中', value: 0 },
-        { label: '已发布', value: 0 },
-        { label: '已上线', value: 0 },
-        { label: '总数', value: 0 },
+        { label: '审批中', value: 28 },
+        { label: '已发布', value: 142 },
+        { label: '已上线', value: 896 },
+        { label: '总数', value: 1066 },
       ],
-
-      /* 排行表 */
-      rankTableData: [],
-
+      rankTableData: [
+        { consumer: '订单服务', provider: '支付中心', count: 850 },
+        { consumer: '用户服务', provider: '认证中心', count: 620 },
+        { consumer: '物流系统', provider: '地图API', count: 410 },
+      ],
       businessCards: [
         {
           title: 'PaaS 服务管理平台',
           rows: [
-            { label: '自动对比次数', value: 0 },
-            { label: '已对比服务数', value: 0 },
-            { label: '已登记服务数', value: 0 },
-            { label: '未登记服务数', value: 0 },
+            { label: '自动对比次数', value: '128' },
+            { label: '已对比服务数', value: '102' },
+            { label: '已登记服务数', value: '102' },
+            { label: '未登记服务数', value: '102' },
           ],
         },
         {
           title: '开发平台服务推送数',
           rows: [
-            { label: '新核心', value: 0 },
-            { label: '新信贷', value: 0 },
+            { label: '新核心', value: '12' },
+            { label: '新信贷', value: '8' },
           ],
         },
         {
           title: '一体化测试',
           rows: [
-            { label: '已同步服务数', value: 0 },
-            { label: '同步次数', value: 0 },
+            { label: '已同步服务数', value: '12' },
+            { label: '同步次数', value: '8' },
           ],
         },
       ],
-
-      processData: { toSubmit: 0, approving: 0, completed: 0 },
-
-      consumerOptions: [],
-      providerOptions: [],
     }
   },
-
-  computed: {
-    filteredRankData() {
-      return this.rankTableData.filter((item) => {
-        const matchConsumer = !this.consumerValue || item.consumer === this.consumerValue
-        const matchProvider = !this.providerValue || item.provider === this.providerValue
-        return matchConsumer && matchProvider
-      })
-    },
-  },
-
   mounted() {
-    this.fetchAllData()
     this.$nextTick(() => {
       this.initGraph()
     })
     window.addEventListener('resize', this.resizeAll)
   },
-
   beforeDestroy() {
     if (this.edgeTimer) clearInterval(this.edgeTimer)
     window.removeEventListener('resize', this.resizeAll)
     if (this.graph) this.graph.destroy()
   },
-
   methods: {
-    // ===============================
-    // 唯一允许修改的方法
-    // ===============================
-    async fetchAllData() {
-      this.loading = true
-      await new Promise((r) => setTimeout(r, 800))
-
-      /* ===============================
-       * 后端假数据
-       * =============================== */
-      const backendData = {
-        asset: {
-          sysCount: 70,
-          serviceCount: 200,
-          publishCount: 360,
-          onlineCount: 1500,
-        },
-        call: {
-          sit: 1204,
-          uat: 856,
-          pre: 432,
-          online: 432,
-          total: 4597,
-        },
-        direct: {
-          approving: 28,
-          publish: 142,
-          online: 896,
-          total: 1066,
-        },
-        rank: [
-          { consumer: '订单服务', provider: '支付中心', count: 850 },
-          { consumer: '订单服务', provider: '库存中心', count: 620 },
-          { consumer: '用户服务', provider: '认证中心', count: 510 },
-          { consumer: '物流系统', provider: '地图API', count: 430 },
-          { consumer: '财务系统', provider: '支付中心', count: 320 },
-          { consumer: '营销系统', provider: '短信平台', count: 260 },
-          { consumer: '风控系统', provider: '规则引擎', count: 210 },
-          { consumer: '报表系统', provider: '数据中台', count: 180 },
-          { consumer: 'APP前端', provider: '用户服务', count: 150 },
-          { consumer: '柜面系统', provider: '核心服务', count: 120 },
-        ],
-        right: {
-          paas: {
-            compareTimes: 128,
-            compared: 102,
-            registered: 102,
-            unregistered: 26,
-          },
-          push: {
-            core: 12,
-            credit: 8,
-          },
-          test: {
-            syncService: 12,
-            syncTimes: 8,
-          },
-          process: {
-            toSubmit: 96,
-            approving: 12,
-            completed: 84,
-          },
-        },
-      }
-
-      /* ===============================
-       * 左侧值覆盖（局部）
-       * =============================== */
-      const assetMap = {
-        已接入系统数: 'sysCount',
-        服务总数: 'serviceCount',
-        已发布服务数: 'publishCount',
-        已上线服务数: 'onlineCount',
-      }
-      this.assetData.forEach((i) => {
-        const k = assetMap[i.label]
-        if (k && backendData.asset[k] !== undefined) i.value = backendData.asset[k]
-      })
-
-      const callMap = { SIT数: 'sit', UAT数: 'uat', 准生产: 'pre', 已上线: 'online', 总数: 'total' }
-      this.callData.forEach((i) => {
-        const k = callMap[i.label]
-        if (k && backendData.call[k] !== undefined) i.value = backendData.call[k]
-      })
-
-      const directMap = { 审批中: 'approving', 已发布: 'publish', 已上线: 'online', 总数: 'total' }
-      this.directData.forEach((i) => {
-        const k = directMap[i.label]
-        if (k && backendData.direct[k] !== undefined) i.value = backendData.direct[k]
-      })
-
-      /* ===============================
-       * 排行榜（整体赋值）
-       * =============================== */
-      this.rankTableData = backendData.rank
-
-      this.consumerOptions = [...new Set(this.rankTableData.map((i) => i.consumer))]
-      this.providerOptions = [...new Set(this.rankTableData.map((i) => i.provider))]
-
-      /* ===============================
-       * 右侧卡片（只改 value）
-       * =============================== */
-      this.businessCards.forEach((card) => {
-        if (card.title === 'PaaS 服务管理平台') {
-          const map = {
-            自动对比次数: 'compareTimes',
-            已对比服务数: 'compared',
-            已登记服务数: 'registered',
-            未登记服务数: 'unregistered',
-          }
-          card.rows.forEach((r) => {
-            const k = map[r.label]
-            if (k && backendData.right.paas[k] !== undefined) r.value = backendData.right.paas[k]
-          })
-        }
-
-        if (card.title === '开发平台服务推送数') {
-          const map = { 新核心: 'core', 新信贷: 'credit' }
-          card.rows.forEach((r) => {
-            const k = map[r.label]
-            if (k && backendData.right.push[k] !== undefined) r.value = backendData.right.push[k]
-          })
-        }
-
-        if (card.title === '一体化测试') {
-          const map = { 已同步服务数: 'syncService', 同步次数: 'syncTimes' }
-          card.rows.forEach((r) => {
-            const k = map[r.label]
-            if (k && backendData.right.test[k] !== undefined) r.value = backendData.right.test[k]
-          })
-        }
-      })
-
-      /* ===============================
-       * 流程数据（字段覆盖）
-       * =============================== */
-      Object.keys(this.processData).forEach((k) => {
-        if (backendData.right.process[k] !== undefined) {
-          this.processData[k] = backendData.right.process[k]
-        }
-      })
-
-      this.loading = false
-    },
-
-    /* ===============================
-     * G6 拓扑：逐字未动
-     * =============================== */
     initGraph() {
       const container = document.getElementById('g6-mount-point')
       if (!container) return
-
       const width = container.scrollWidth
       const height = container.scrollHeight || 300
-
       const data = {
         nodes: [
-          // ===== 原有节点（完全未动） =====
-          { id: 'customer', label: '客户信息', x: 200, y: 40 },
-          { id: 'mobile', label: '移动展业', x: 290, y: 40 },
-          {
-            id: 'gateway',
-            label: '分布式网关',
-            x: 250,
-            y: 180,
-            size: 110,
-            style: { fill: '#fffbe6', stroke: '#faad14' },
-          },
-          { id: 'fengshou', label: '丰收互联', x: 300, y: 380 },
+          { id: 'customer', label: '客户信息', x: 500, y: 100 },
+          { id: 'mobile', label: '移动展业', x: 300, y: 150 },
+          { id: 'gateway', label: '分布式网关', x: 200, y: 250, size: 70, style: { fill: '#fffbe6', stroke: '#faad14' } },
+          { id: 'fengshou', label: '丰收互联', x: 100, y: 150 },
           { id: 'core', label: '柜面核心', x: 100, y: 350 },
-
-          { id: 'door', label: '数字门牌', x: 800, y: 40 },
-          { id: 'ic', label: 'IC卡多应用', x: 800, y: 150 },
-          { id: 'ebank', label: '个人网银', x: 1000, y: 40 },
-          { id: 'wechat', label: '信用卡微信', x: 1000, y: 150 },
-
-          // ===== 新增：上游 3 个节点 =====
-          { id: 'containerCloud', label: '容器云', x: 100, y: 40 },
-          { id: 'trafficCloud', label: '交通场景云', x: 100, y: 120 },
-          { id: 'portal', label: '官网门户', x: 100, y: 200 },
-
-          // ===== 新增：下游 2 个节点 =====
-          { id: 'inclusive', label: '普惠通', x: 350, y: 260 },
-          { id: 'credit', label: '信贷管理', x: 450, y: 260 },
         ],
         edges: [
-          // ===== 原有连线（未动） =====
           { source: 'customer', target: 'gateway' },
           { source: 'mobile', target: 'gateway' },
           { source: 'gateway', target: 'fengshou' },
           { source: 'gateway', target: 'core' },
-
-          { source: 'door', target: 'ic' },
-          { source: 'ic', target: 'door' },
-          { source: 'ebank', target: 'wechat' },
-
-          // ===== 新增：上游 → 网关 =====
-          { source: 'containerCloud', target: 'gateway' },
-          { source: 'trafficCloud', target: 'gateway' },
-          { source: 'portal', target: 'gateway' },
-
-          // ===== 新增：网关 → 下游 =====
-          { source: 'gateway', target: 'inclusive' },
-          { source: 'gateway', target: 'credit' },
         ],
       }
-
       this.graph = new G6.Graph({
         container: 'g6-mount-point',
         width,
         height,
-        modes: {
-          default: ['drag-canvas', 'zoom-canvas', 'drag-node'],
-        },
+        fitView: true,
+        fitViewPadding: 30,
+        modes: { default: ['drag-canvas', 'zoom-canvas', 'drag-node'] },
         defaultNode: {
           type: 'circle',
-          size: 68,
-          style: {
-            fill: '#e6f4ff',
-            stroke: '#1677ff',
-            lineWidth: 2,
-          },
-          labelCfg: {
-            position: 'center',
-            style: {
-              fontSize: 13,
-              fontWeight: 'bold',
-              fill: '#1f1f1f',
-              stroke: '#ffffff',
-              lineWidth: 2,
-              textAlign: 'center',
-              textBaseline: 'middle',
-            },
-          },
+          size: 40,
+          style: { fill: '#e6f4ff', stroke: '#1677ff', lineWidth: 1.5 },
+          labelCfg: { style: { fontSize: 10, fill: '#555' } },
         },
         defaultEdge: {
-          style: {
-            stroke: '#91caff',
-            lineWidth: 2,
-            lineDash: [5, 5],
-            endArrow: {
-              path: G6.Arrow.triangle(6, 10, 0),
-              fill: '#91caff',
-            },
-          },
+          style: { stroke: '#91caff', lineWidth: 2, lineDash: [5, 5], endArrow: { path: G6.Arrow.triangle(5, 8, 0), fill: '#91caff' } },
         },
       })
-
-      this.graph.on('node:click', () => {
-        window.open('https://www.baidu.com', '_blank')
-      })
-
       this.graph.data(data)
       this.graph.render()
-
       this.startEdgeAnimation()
     },
-
     startEdgeAnimation() {
       let offset = 0
       this.edgeTimer = setInterval(() => {
@@ -492,11 +254,10 @@ export default {
         }
       }, 50)
     },
-
     resizeAll() {
-      const c = document.getElementById('g6-mount-point')
-      if (c && this.graph) {
-        this.graph.changeSize(c.scrollWidth, c.scrollHeight)
+      const container = document.getElementById('g6-mount-point')
+      if (container && this.graph) {
+        this.graph.changeSize(container.scrollWidth, container.scrollHeight)
         this.graph.fitView()
       }
     },
@@ -505,7 +266,7 @@ export default {
 </script>
 
 <style scoped>
-/* 此处代码完全保留你要求的样式，没有任何文字和视觉上的改动 */
+/* 保持原有结构样式不变 */
 .page-container {
   display: flex;
   width: 100%;
@@ -515,6 +276,7 @@ export default {
   padding: 12px;
   box-sizing: border-box;
 }
+
 .left-sidebar {
   flex: 1;
   display: flex;
@@ -524,12 +286,14 @@ export default {
   height: 100%;
   overflow: hidden;
 }
+
 .side-card {
   border: none !important;
   border-radius: 10px !important;
   flex-shrink: 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
 }
+
 .card-header-box {
   display: flex;
   align-items: center;
@@ -543,6 +307,7 @@ export default {
   font-size: 16px;
   color: #262626;
 }
+
 .header-with-more {
   display: flex;
   justify-content: space-between;
@@ -552,6 +317,7 @@ export default {
   font-size: 12px;
   font-weight: normal;
 }
+
 .horizontal-grid {
   display: flex;
   justify-content: space-between;
@@ -575,6 +341,7 @@ export default {
   font-weight: 900;
   color: #262626;
 }
+
 .flex-fill {
   flex: 1;
   min-height: 0;
@@ -593,6 +360,7 @@ export default {
   background: radial-gradient(#f0f0f0 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
 .color-blue {
   color: #1677ff !important;
 }
@@ -605,6 +373,7 @@ export default {
 .green {
   color: #52c41a;
 }
+
 .right-sidebar {
   width: 440px;
   background: #ffffff;
@@ -613,6 +382,7 @@ export default {
   flex-direction: column;
   box-shadow: -4px 0 15px rgba(0, 0, 0, 0.05);
 }
+
 .right-scroll-container {
   flex: 1;
   overflow-y: auto;
@@ -621,6 +391,7 @@ export default {
   flex-direction: column;
   gap: 18px;
 }
+
 .right-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
@@ -628,6 +399,7 @@ export default {
   background: #dcdfe6;
   border-radius: 10px;
 }
+
 .custom-card {
   background: #fff;
   border: 1px solid #f0f0f0;
@@ -644,6 +416,7 @@ export default {
   border-left: 4px solid #1677ff;
   padding-left: 10px;
 }
+
 .enhanced {
   padding: 14px 10px !important;
   margin: 0 6px;
@@ -666,6 +439,10 @@ export default {
   font-weight: 700;
   font-size: 14px;
 }
+
+/* --------------------------------------------------- */
+/* 流程统计：深度美化部分                             */
+/* --------------------------------------------------- */
 .process-body {
   padding: 16px !important;
 }
@@ -715,6 +492,8 @@ export default {
   font-weight: 500;
   opacity: 0.8;
 }
+
+/* 状态配色方案 */
 .p-item-box.gray {
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
   color: #4b5563;
@@ -723,6 +502,7 @@ export default {
 .p-item-box.gray .p-icon-bg {
   color: #6b7280;
 }
+
 .p-item-box.orange {
   background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   color: #b45309;
@@ -731,6 +511,7 @@ export default {
 .p-item-box.orange .p-icon-bg {
   color: #f59e0b;
 }
+
 .p-item-box.green {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   color: #15803d;
@@ -739,6 +520,9 @@ export default {
 .p-item-box.green .p-icon-bg {
   color: #22c55e;
 }
+
+/* --------------------------------------------------- */
+
 .rank-body {
   padding: 12px !important;
 }
@@ -755,7 +539,5 @@ export default {
 }
 .rank-filters-row {
   margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
 }
 </style>
