@@ -758,4 +758,63 @@ export default {
   display: flex;
   justify-content: space-between;
 }
+
+/* ===============================
+ * 流程数统计：横向紧凑布局
+ * =============================== */
+
+/* 减少整体内边距 */
+.process-card .process-body {
+  padding: 10px 12px !important;
+}
+
+/* 仍然三等分横排，但整体更扁 */
+.process-card .process-flex-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* 每个流程块：改为横向布局 */
+.process-card .p-item-box {
+  flex-direction: row; /* ⬅ 横向 */
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px 10px; /* ⬅ 明显变矮 */
+}
+
+/* icon 不再占一整行 */
+.process-card .p-icon-bg {
+  margin-bottom: 0; /* ⬅ 去掉纵向间距 */
+  margin-right: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* 数字 + 文本左对齐 */
+.process-card .p-info {
+  text-align: left;
+}
+
+/* 数字略微缩小，防止撑高 */
+.process-card .p-v {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+/* 文案更紧凑 */
+.process-card .p-l {
+  font-size: 12px;
+}
+
+.side-card ::v-deep .el-card__header {
+  padding: 8px 12px; /* ⬅ 原来 18px 20px，明显变矮 */
+}
+
+/* 标题文字本身微调 */
+.side-card .card-header-title {
+  font-size: 14px;
+  line-height: 1.2;
+}
 </style>
